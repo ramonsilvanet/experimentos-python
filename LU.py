@@ -2,6 +2,7 @@ import json
 import time
 import math
 from pprint import pprint
+import sys, gc
 
 
 with open('metodo_js/json/nasa2146.json') as data_file:    
@@ -13,6 +14,9 @@ with open('metodo_js/json/nasa2146_b.json') as data_file:
 def LU(A):
 	
 	n = len(A) # Give us total of lines
+
+	EPSILON = 0.00001
+	FACTOR  = 1000000
 
 	# (1) Extract the b vector
 	b = [0 for i in range(n)]
@@ -50,7 +54,11 @@ def LU(A):
 
 		# (4.3) Subtract lines
 		for k in range(i+1,n):
-			c = -U[k][i]/float(U[i][i])
+			if(U[i][i] < EPSILON):
+				c = -U[k][i]*FACTOR
+			else:
+				c = -U[k][i]/float(U[i][i])
+
 			L[k][i] = c # (4.4) Store the multiplier
 			for j in range(i, n):
 				U[k][j] += c*U[i][j] # Multiply with the pivot line and subtract
@@ -61,19 +69,36 @@ def LU(A):
 
 	n = len(L)
 
+	A = None
+	b = None
+	collected = gc.collect()
+	print "Garbage collector: collected %d objects." % (collected)
+
 	# (5) Perform substitutioan Ly=b
 	y = [0 for i in range(n)]
 	for i in range(0,n,1):
-		y[i] = b[i]/float(L[i][i])
+		if(L[i][i] < EPSILON):
+			y[i] = b[i]*FACTOR
+		else:
+			y[i] = b[i]/float(L[i][i])
+
 		for k in range(0,i,1):
 			y[i] -= y[k]*L[i][k]
+
+	L = None
+	collected = gc.collect()
+	print "Garbage collector: collected %d objects." % (collected)
 
 	n = len(U)
 
 	# (6) Perform substitution Ux=y
 	x = [0 in range(n)]
 	for i in range(n-1,-1,-1):
-		x[i] = y[i]/float(U[i][i])
+		if(U[i][i] < EPSILON):
+			x[i] = y[i]*FACTOR
+		else:
+			x[i] = y[i]/float(U[i][i])
+
 		for k in range (i-1,-1,-1):
 			U[i] -= x[i]*U[i][k]
 

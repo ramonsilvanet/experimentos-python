@@ -40,11 +40,17 @@ def getL(A):
 	lines = len(A)
 	columns = len(A[0])
 
+	EPSILON = 0.00001
+	FACTOR  = 1000000
+
 	L = [[0 for j in range(columns)] for i in range(lines)]
 
 	L[0][0] = sqrt(A[0][0])
 	for i in range(1, lines, 1):
-		L[i][0] = (1/float(L[0][0])) * A[i][0]
+		if(L[0][0]<EPSILON):
+			L[i][0] = (FACTOR) * A[i][0]
+		else:
+			L[i][0] = (1/float(L[0][0])) * A[i][0]
 
 	for i in range(1, lines, 1):
 		acc = 0
@@ -66,13 +72,19 @@ def getL(A):
 			else:
 				acc = acc - L[i+1][k]*L[i][k]
 		
-		L[i+1][i] = (1/float(L[i][i]))*(A[i+1][i] - acc)
+		if(L[i][i] < EPSILON):
+			L[i+1][i] = (FACTOR)*(A[i+1][i] - acc)
+		else:
+			L[i+1][i] = (1/float(L[i][i]))*(A[i+1][i] - acc)
 
 def solve(A, b):
 	L  = getL(A)
 	Lt = transpose(L)
 
 	n = len(A)
+
+	EPSILON = 0.00001
+	FACTOR  = 1000000
 
 	A = None
 	collected = gc.collect()
@@ -84,7 +96,10 @@ def solve(A, b):
 		for k in range(0,i,1):
 			acc = acc - L[i][k]*y[k]
 
-		y[i] = (1/float(L[i][i]))*(acc)
+		if(L[i][i]<EPSILON):
+			y[i] = (FACTOR)*(acc)
+		else:
+			y[i] = (1/float(L[i][i]))*(acc)
 
 	b = None
 	L = None
@@ -96,7 +111,11 @@ def solve(A, b):
 		acc = y[i]
 		for j in range(i + 1, n):
 			acc = acc - Lt[i][j]*x[j]
-		x[i] = (1/float(Lt[i][i]))*(acc)
+
+		if(Lt[i][i]<EPSILON):
+			x[i] = (FACTOR)*(acc)
+		else:
+			x[i] = (1/float(Lt[i][i]))*(acc)
 
 	return x
 
